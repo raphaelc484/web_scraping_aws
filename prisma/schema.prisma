@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model tbl_arm_ssis {
+  id          Int       @id @default(autoincrement())
+  num_ssis    Int?
+  dat_medicao DateTime? @db.Date
+  val_arm_p   Float?    @db.Float
+  cod_fonte   Int?
+  tbl_ssis    tbl_ssis? @relation(fields: [num_ssis], references: [num_ssis], onDelete: Restrict, onUpdate: Restrict, map: "tbl_arm_ssis_ibfk_1")
+
+  @@unique([num_ssis, dat_medicao, cod_fonte], map: "tbl_arm_ssis_UN")
+}
+
+model tbl_bacia {
+  num_bacia         Int                 @id @default(autoincrement())
+  nom_bacia         String?             @db.Char(255)
+  tbl_posto         tbl_posto[]
+  tbl_prec_point    tbl_prec_point[]
+  tbl_precipitation tbl_precipitation[]
+}
+
+model tbl_cota_volume {
+  num_index  BigInt    @id @default(autoincrement())
+  num_posto  Int
+  val_cota   Float     @db.Float
+  val_volume Decimal
+  val_vu_    Decimal   @map("val_vu%")
+  tbl_posto  tbl_posto @relation(fields: [num_posto], references: [num_posto], onDelete: Cascade, onUpdate: Restrict, map: "tbl_cota_volume_FK")
+
+  @@index([num_posto], map: "tbl_cota_volume_FK")
+}
+
+model tbl_data_source {
+  num_data_source Int    @id @default(autoincrement())
+  nom_data_source String @db.VarChar(100)
+}
+
+model tbl_ena {
+  num_ena   Int       @id @default(autoincrement())
+  num_ssis  Int
+  dat_ipdo  DateTime  @db.DateTime(0)
+  val_ena   Float     @db.Float
+  cod_fonte Int
+  tbl_fonte tbl_fonte @relation(fields: [cod_fonte], references: [cod_fonte], onUpdate: Restrict, map: "tbl_ena_tbl_fonte_FK")
+  tbl_ssis  tbl_ssis  @relation(fields: [num_ssis], references: [num_ssis], onUpdate: Restrict, map: "tbl_ena_tbl_ssis_FK")
+
+  @@index([cod_fonte], map: "tbl_ena_tbl_fonte_FK")
+  @@index([num_ssis], map: "tbl_ena_tbl_ssis_FK")
+}
+
+model tbl_file_data {
+  num_file          Int      @id @default(autoincrement())
+  nom_file          String   @db.VarChar(20)
+  dat_file_publi    DateTime @db.Date
+  dat_file_download DateTime @db.Date
+}
+
+model tbl_flow_forecast {
+  num_forecast  BigInt    @id @default(autoincrement())
+  num_ssis      Int
+  val_week1     Float     @db.Float
+  val_week2     Float?    @db.Float
+  val_week3     Float?    @db.Float
+  val_week4     Float?    @db.Float
+  val_week5     Float?    @db.Float
+  val_week6     Float?    @db.Float
+  val_month     Float?    @db.Float
+  dat_forecast  DateTime? @db.Date
+  ind_consisted Bytes     @db.Binary(1)
+  val_month_mlt Float?    @db.Float
+  tbl_ssis      tbl_ssis  @relation(fields: [num_ssis], references: [num_ssis], onUpdate: Restrict, map: "tbl_flow_forecast_tbl_ssis_FK")
+
+  @@index([num_ssis], map: "tbl_flow_forecast_tbl_ssis_FK")
+}
+
+model tbl_fonte {
+  cod_fonte Int         @id @default(autoincrement())
+  nom_fonte String?     @db.VarChar(100)
+  tbl_ena   tbl_ena[]
+  tbl_vazao tbl_vazao[]
+}
+
+model tbl_ipdo_load {
+  num_ipdo       BigInt   @id @default(autoincrement())
+  dat_ipdo       DateTime @db.Date
+  num_ssis       Int
+  val_load_verif Float    @db.Float
+  val_load_predi Float    @db.Float
+  tbl_ssis       tbl_ssis @relation(fields: [num_ssis], references: [num_ssis], onUpdate: Restrict, map: "tbl_ipdo_load_tbl_ssis_FK")
+
+  @@index([num_ssis], map: "tbl_ipdo_load_tbl_ssis_FK")
+}
+
+model tbl_load_daily {
+  num_load_daily Int      @id @default(autoincrement())
+  dat_initi      DateTime @db.DateTime(0)
+  dat_final      DateTime @db.DateTime(0)
+  dat_running    DateTime @db.DateTime(0)
+  num_ssis       Int
+  val_load_daily Float    @db.Float
+  tbl_ssis       tbl_ssis @relation(fields: [num_ssis], references: [num_ssis], onUpdate: Restrict, map: "tbl_load_daily_FK")
+
+  @@index([num_ssis], map: "tbl_load_daily_FK")
+}
+
+model tbl_load_monthly {
+  num_load_monthly Int       @id @default(autoincrement())
+  dat_load_running DateTime? @db.DateTime(0)
+  dat_load         DateTime? @db.Date
+  val_load_monthly Float?    @db.Float
+  num_ssis         Int?
+  tbl_ssis         tbl_ssis? @relation(fields: [num_ssis], references: [num_ssis], onDelete: Restrict, onUpdate: Restrict, map: "tbl_load_monthly_FK")
+
+  @@index([num_ssis], map: "tbl_load_monthly_FK")
+}
+
+model tbl_load_weekly {
+  num_load  BigInt   @id @default(autoincrement())
+  dat_load  DateTime @db.Date
+  num_ssis  Int
+  val_week1 Float    @db.Float
+  val_week2 Float?   @db.Float
+  val_week3 Float?   @db.Float
+  val_week4 Float?   @db.Float
+  val_week5 Float?   @db.Float
+  val_week6 Float?   @db.Float
+  val_week7 Float?   @db.Float
+  tbl_ssis  tbl_ssis @relation(fields: [num_ssis], references: [num_ssis], onUpdate: Restrict, map: "tbl_load_weekly_tbl_ssis_FK")
+
+  @@index([num_ssis], map: "tbl_load_weekly_tbl_ssis_FK")
+}
+
+model tbl_posto {
+  num_posto          Int                 @id @default(autoincrement())
+  num_bacia          Int?
+  num_ssis           Int?
+  num_ree            Int?
+  num_jus            Int?
+  val_cota_min       Decimal?
+  val_cota_max       Decimal?
+  val_vol_min        Decimal?
+  val_vol_max        Decimal?
+  val_produt         Decimal?
+  cod_reg            Int?
+  bin_ena            Int?
+  num_usina          Int?
+  cod_model          Int?
+  val_pol_cv0        Decimal?
+  val_pol_cv1        Decimal?
+  val_pol_cv2        Decimal?
+  val_pol_cv3        Decimal?
+  val_pol_cv4        Decimal?
+  val_pol_ca0        Decimal?
+  val_pol_ca1        Decimal?
+  val_pol_ca2        Decimal?
+  val_pol_ca3        Decimal?
+  val_pol_ca4        Decimal?
+  nom_posto          String?             @db.VarChar(100)
+  tbl_tipo_regressao tbl_tipo_regressao? @relation(fields: [cod_reg], references: [cod_reg], onDelete: Restrict, onUpdate: Restrict, map: "tbl_posto_ibfk_3")
+  tbl_bacia          tbl_bacia?          @relation(fields: [num_bacia], references: [num_bacia], onDelete: Restrict, onUpdate: Restrict, map: "tbl_posto_ibfk_1")
+  tbl_ree            tbl_ree?            @relation(fields: [num_ree], references: [num_ree], onDelete: Restrict, onUpdate: Restrict, map: "tbl_posto_FK")
+  tbl_ssis           tbl_ssis?           @relation(fields: [num_ssis], references: [num_ssis], onDelete: Restrict, onUpdate: Restrict, map: "tbl_posto_ibfk_2")
+  tbl_cota_volume    tbl_cota_volume[]
+  tbl_vazao          tbl_vazao[]
+
+  @@index([cod_reg], map: "cod_reg")
+  @@index([num_bacia], map: "num_bacia")
+  @@index([num_ssis], map: "num_ssis")
+  @@index([num_ree], map: "tbl_posto_FK")
+}
+
+model tbl_prec_model {
+  num_prec_model    Int                 @id @default(autoincrement())
+  nom_prec_model    String              @db.VarChar(100)
+  tbl_precipitation tbl_precipitation[]
+}
+
+model tbl_prec_point {
+  num_prec_point Int       @id @default(autoincrement())
+  num_bacia      Int
+  num_smap       Bytes     @db.Binary(1)
+  val_latitude   Float     @db.Float
+  val_longitude  Float     @db.Float
+  tbl_bacia      tbl_bacia @relation(fields: [num_bacia], references: [num_bacia], map: "tbl_prec_point_tbl_bacia_FK")
+
+  @@index([num_bacia], map: "tbl_prec_point_tbl_bacia_FK")
+}
+
+model tbl_precipitation {
+  num_prec       Int            @id @default(autoincrement())
+  dat_running    DateTime       @db.DateTime(0)
+  dat_forecast   DateTime       @db.DateTime(0)
+  num_prec_model Int
+  num_bacia      Int
+  val_prec       Float          @db.Float
+  tbl_bacia      tbl_bacia      @relation(fields: [num_bacia], references: [num_bacia], onUpdate: Restrict, map: "tbl_precipitation_FK")
+  tbl_prec_model tbl_prec_model @relation(fields: [num_prec_model], references: [num_prec_model], onUpdate: Restrict, map: "tbl_precipitation_tbl_prec_model_FK")
+
+  @@index([num_bacia], map: "tbl_precipitation_FK")
+  @@index([num_prec_model], map: "tbl_precipitation_tbl_prec_model_FK")
+}
+
+model tbl_ree {
+  num_ree      Int         @id @default(autoincrement())
+  nom_ree      String?     @db.Char(50)
+  nom_ree_comp String?     @db.Char(255)
+  tbl_posto    tbl_posto[]
+}
+
+model tbl_ssis {
+  num_ssis          Int                 @id @default(autoincrement())
+  nom_ssis          String?             @db.Char(2)
+  nom_ssis_comp     String?             @db.Char(255)
+  tbl_arm_ssis      tbl_arm_ssis[]
+  tbl_ena           tbl_ena[]
+  tbl_flow_forecast tbl_flow_forecast[]
+  tbl_ipdo_load     tbl_ipdo_load[]
+  tbl_load_daily    tbl_load_daily[]
+  tbl_load_monthly  tbl_load_monthly[]
+  tbl_load_weekly   tbl_load_weekly[]
+  tbl_posto         tbl_posto[]
+}
+
+model tbl_tipo_regressao {
+  cod_reg   Int         @id @default(autoincrement())
+  nom_reg   String?     @db.Char(255)
+  tbl_posto tbl_posto[]
+}
+
+model tbl_vazao {
+  id           Int        @id @default(autoincrement())
+  num_posto    Int?
+  dat_medicao  DateTime?  @db.Date
+  val_vaz_natr Float?     @db.Float
+  val_vaz_defl Float?     @db.Float
+  val_vaz_aflu Float?     @db.Float
+  val_vaz_vert Float?     @db.Float
+  val_vaz_incr Float?     @db.Float
+  val_cota     Float?     @db.Float
+  cod_fonte    Int?
+  val_arm      Float?     @db.Float
+  tbl_fonte    tbl_fonte? @relation(fields: [cod_fonte], references: [cod_fonte], onDelete: Restrict, onUpdate: Restrict, map: "tbl_vazao_tbl_fonte_FK")
+  tbl_posto    tbl_posto? @relation(fields: [num_posto], references: [num_posto], onDelete: Restrict, onUpdate: Restrict, map: "tbl_vazao_ibfk_1")
+
+  @@index([num_posto], map: "num_posto")
+  @@index([dat_medicao], map: "tbl_vazao_dat_medicao_IDX")
+  @@index([cod_fonte], map: "tbl_vazao_tbl_fonte_FK")
+}
+
+model tlb_tipo_fatores_regressao {
+  num_posto      Int
+  num_posto_base Int?
+  num_mes        Int
+  val_fator_a0   Float? @db.Float
+  val_fator_a1   Float? @db.Float
+
+  @@id([num_posto, num_mes])
+}
