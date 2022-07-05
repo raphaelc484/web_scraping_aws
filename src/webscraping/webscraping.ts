@@ -25,6 +25,7 @@ export async function webscraping({
   const browser = await puppeteer.launch({
     // headless: false,
   });
+
   const page = await browser.newPage();
 
   try {
@@ -80,10 +81,12 @@ export async function webscraping({
         });
         await (page as any)._client.send("Network.clearBrowserCookies");
         await page.close();
+        console.log(name);
       }
     }
   } catch (error) {
-    console.log("Erro de timing");
+    console.log(`Erro de timing no ${name}`);
+    // console.log(error);
     await (page as any)._client.send("Network.clearBrowserCookies");
     await page.close();
   }
