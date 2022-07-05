@@ -1,10 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { CronJob } from "cron";
+import { format } from "date-fns";
 
 import { webscraping } from "./webscraping";
 
 interface IProdProps {
   name: string;
-  dateToday: Date;
+  dateToday: string;
 }
 
 async function findRegister({ name, dateToday }: IProdProps) {
@@ -14,7 +16,7 @@ async function findRegister({ name, dateToday }: IProdProps) {
     take: 1,
     where: {
       nom_file: name,
-      dat_file_publi: dateToday,
+      dat_file_publi: new Date(dateToday),
     },
   });
 
@@ -50,7 +52,7 @@ export async function peralta() {
   for await (const product of products) {
     const checkRegister = await findRegister({
       name: product.name,
-      dateToday: product.dateToday,
+      dateToday: format(product.dateToday, "yyyy-MM-dd"),
     });
 
     if (!checkRegister) {
@@ -84,4 +86,13 @@ export async function peralta() {
   }
 }
 
-setTimeout(peralta, 15000);
+// setTimeout(peralta, 15000);
+const jobs = new CronJob(
+  "*/2 18-19 * * *",
+  async () => {
+    await peralta();
+  },
+  null,
+  true,
+  "America/Sao_Paulo"
+);
