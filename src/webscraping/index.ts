@@ -88,7 +88,7 @@ export async function peralta() {
 
 // setTimeout(peralta, 15000);
 const jobs = new CronJob(
-  "*/2 18-19 * * *",
+  "*/2 8-10 * * *",
   async () => {
     await peralta();
   },
