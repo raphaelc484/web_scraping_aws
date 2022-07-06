@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { PrismaClient } from "@prisma/client";
 import { CronJob } from "cron";
 import { format } from "date-fns";
@@ -53,37 +54,37 @@ export async function peralta() {
 
   const products = [eta40, gefs50, ecmwf];
 
-  for await (const product of products) {
+  for (let i = 0; i < products.length; i += 1) {
     const checkRegister = await findRegister({
-      name: product.name,
-      dateToday: format(product.dateToday, "yyyy-MM-dd"),
+      name: products[i].name,
+      dateToday: format(products[i].dateToday, "yyyy-MM-dd"),
     });
 
     if (!checkRegister) {
-      if (product.name === "Eta40") {
+      if (products[i].name === "Eta40") {
         await webscraping({
-          name: product.name,
+          name: products[i].name,
           product: "549",
           numberCSS: "6419",
-          dateInfo: product.dateToday,
+          dateInfo: products[i].dateToday,
         });
       }
 
-      if (product.name === "Gefs50") {
+      if (products[i].name === "Gefs50") {
         await webscraping({
-          name: product.name,
+          name: products[i].name,
           product: "550",
           numberCSS: "6416",
-          dateInfo: product.dateToday,
+          dateInfo: products[i].dateToday,
         });
       }
 
-      if (product.name === "ECMWF") {
+      if (products[i].name === "ECMWF") {
         await webscraping({
-          name: product.name,
+          name: products[i].name,
           product: "551",
           numberCSS: "7642",
-          dateInfo: product.dateToday,
+          dateInfo: products[i].dateToday,
         });
       }
     }
