@@ -12,6 +12,8 @@ interface IProdProps {
 async function findRegister({ name, dateToday }: IProdProps) {
   const prisma = new PrismaClient();
 
+  await prisma.$connect();
+
   const findRegister = await prisma.tbl_file_data.findFirst({
     take: 1,
     where: {
@@ -19,6 +21,8 @@ async function findRegister({ name, dateToday }: IProdProps) {
       dat_file_publi: new Date(dateToday),
     },
   });
+
+  await prisma.$disconnect();
 
   return findRegister;
 }
