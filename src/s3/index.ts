@@ -9,6 +9,22 @@ interface IS3Props {
   pathBase: string;
 }
 
+async function saveRegister(name: string) {
+  const prisma = new PrismaClient();
+
+  await prisma.$connect();
+
+  await prisma.tbl_file_data.create({
+    data: {
+      nom_file: name,
+      dat_file_publi: new Date(),
+      dat_file_download: new Date(),
+    },
+  });
+
+  await prisma.$disconnect();
+}
+
 export async function uploadFileS3({ nameDir, nameFile, pathBase }: IS3Props) {
   aws.config.update({
     secretAccessKey: process.env.ACCESS_SECRET,
@@ -87,16 +103,9 @@ export async function uploadFileS3({ nameDir, nameFile, pathBase }: IS3Props) {
     } else {
       entry.autodrain();
     }
-
-    const prisma = new PrismaClient();
-    await prisma.tbl_file_data.create({
-      data: {
-        nom_file: nameDir,
-        dat_file_publi: new Date(),
-        dat_file_download: new Date(),
-      },
-    });
   }
 
   await Promise.all(promises);
+
+  await saveRegister(nameDir);
 }
